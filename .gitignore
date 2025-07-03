@@ -1,41 +1,364 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
+*.exe
 *.o
 *.obj
 
-# Precompiled Headers
-*.gch
-*.pch
+Code:
+// 🏫 Full OOP School Management System (Human-Written Style - Fully Functional)
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
 
-# Linker files
-*.ilk
+// ================= PERSON BASE CLASS =================
+class Person {
+protected:
+    int id;
+    string name;
+    int age;
+    string username;
+    string password;
 
-# Debugger Files
-*.pdb
+public:
+    Person(int pid, string pname, int page, string user, string pass)
+        : id(pid), name(pname), age(page), username(user), password(pass) {}
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+    void displayInfo() const {
+        cout << "ID: " << id << ", Name: " << name << ", Age: " << age << endl;
+    }
 
-# Fortran module files
-*.mod
-*.smod
+    int getId() const { return id; }
+    string getName() const { return name; }
+    string getUsername() const { return username; }
+    string getPassword() const { return password; }
+};
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+// ================= COURSE CLASS =================
+class Course {
+public:
+    int courseID;
+    string courseName;
 
-# Executables
-*.exe
-*.out
-*.app
+    Course(int cid, string cname) : courseID(cid), courseName(cname) {}
 
-# debug information files
-*.dwo
+    void displayCourseInfo() const {
+        cout << "Course ID: " << courseID << ", Course Name: " << courseName << endl;
+    }
+};
+
+// ================= FEEDBACK CLASS =================
+class Feedback {
+public:
+    string studentName;
+    string teacherName;
+    string feedbackText;
+
+    Feedback(string sName, string tName, string feedback)
+        : studentName(sName), teacherName(tName), feedbackText(feedback) {}
+
+    void displayFeedback() const {
+        cout << "Feedback by " << studentName << " on " << teacherName << ": " << feedbackText << endl;
+    }
+};
+
+// ================= STUDENT CLASS =================
+class Student : public Person {
+private:
+    vector<Course> selectedCourses;
+
+public:
+    Student(int sid, string sname, int sage, string user, string pass)
+        : Person(sid, sname, sage, user, pass) {}
+
+    void selectCourse(const Course& course) {
+        selectedCourses.push_back(course);
+        cout << "Course selected successfully.\n";
+    }
+
+    void viewSelectedCourses() const {
+        if (selectedCourses.empty()) {
+            cout << "No courses selected yet.\n";
+            return;
+        }
+
+        cout << "Courses selected by " << name << ":\n";
+        for (const auto& course : selectedCourses) {
+            course.displayCourseInfo();
+        }
+    }
+};
+
+// ================= TEACHER CLASS =================
+class Teacher : public Person {
+private:
+    vector<int> assignedStudentIds;
+
+public:
+    Teacher(int tid, string tname, int tage, string user, string pass)
+        : Person(tid, tname, tage, user, pass) {}
+
+    void assignStudent(int studentId) {
+        assignedStudentIds.push_back(studentId);
+        cout << "Student assigned to " << name << " successfully.\n";
+    }
+
+    void viewAssignedStudents(const vector<Student>& allStudents) const {
+        if (assignedStudentIds.empty()) {
+            cout << "No students assigned yet.\n";
+            return;
+        }
+
+        cout << "Students assigned to " << name << ":\n";
+        for (int id : assignedStudentIds) {
+            for (const auto& student : allStudents) {
+                if (student.getId() == id) {
+                    student.displayInfo();
+                    break;
+                }
+            }
+        }
+    }
+};
+
+// ================= ADMINISTRATOR CLASS =================
+class Administrator {
+private:
+    string username = "admin";
+    string password = "admin123";
+    vector<Teacher> teachers;
+    vector<Student> students;
+
+public:
+    bool login(const string& user, const string& pass) const {
+        return (user == username && pass == password);
+    }
+
+    void addTeacher() {
+        int id, age;
+        string name, user, pass;
+        cout << "Enter Teacher ID: "; cin >> id;
+        cin.ignore();
+        cout << "Enter Teacher Name: "; getline(cin, name);
+        cout << "Enter Teacher Age: "; cin >> age;
+        cout << "Enter Username: "; cin >> user;
+        cout << "Enter Password: "; cin >> pass;
+
+        teachers.emplace_back(id, name, age, user, pass);
+        cout << "Teacher account created successfully.\n";
+    }
+
+    void addStudent() {
+        int id, age;
+        string name, user, pass;
+        cout << "Enter Student ID: "; cin >> id;
+        cin.ignore();
+        cout << "Enter Student Name: "; getline(cin, name);
+        cout << "Enter Student Age: "; cin >> age;
+        cout << "Enter Username: "; cin >> user;
+        cout << "Enter Password: "; cin >> pass;
+
+        students.emplace_back(id, name, age, user, pass);
+        cout << "Student account created successfully.\n";
+    }
+
+    void assignStudentToTeacher() {
+        int studentId, teacherId;
+        cout << "Enter Student ID: "; cin >> studentId;
+        cout << "Enter Teacher ID: "; cin >> teacherId;
+
+        Teacher* targetTeacher = nullptr;
+        for (auto& teacher : teachers) {
+            if (teacher.getId() == teacherId) {
+                targetTeacher = &teacher;
+                break;
+            }
+        }
+
+        if (!targetTeacher) {
+            cout << "Teacher not found.\n";
+            return;
+        }
+
+        for (const auto& student : students) {
+            if (student.getId() == studentId) {
+                targetTeacher->assignStudent(studentId);
+                return;
+            }
+        }
+        cout << "Student not found.\n";
+    }
+
+    void viewTeachers() const {
+        if (teachers.empty()) {
+            cout << "No teachers available.\n";
+            return;
+        }
+
+        for (const auto& teacher : teachers) {
+            teacher.displayInfo();
+        }
+    }
+
+    void viewStudents() const {
+        if (students.empty()) {
+            cout << "No students available.\n";
+            return;
+        }
+
+        for (const auto& student : students) {
+            student.displayInfo();
+        }
+    }
+
+    vector<Teacher>& getTeachers() { return teachers; }
+    vector<Student>& getStudents() { return students; }
+};
+
+// ================= LOGIN FUNCTION =================
+template <typename T>
+int authenticateUser(vector<T>& users) {
+    string user, pass;
+    cout << "Enter Username: "; cin >> user;
+    cout << "Enter Password: "; cin >> pass;
+
+    for (size_t i = 0; i < users.size(); ++i) {
+        if (users[i].getUsername() == user && users[i].getPassword() == pass) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+// ================= MAIN FUNCTION =================
+int main() {
+    Administrator admin;
+    vector<Course> courses = { {101, "Math"}, {102, "Physics"}, {103, "Computer Science"} };
+    vector<Feedback> feedbacks;
+    int mainChoice;
+
+    do {
+        cout << "\n=== School Management System ===\n";
+        cout << "1. Administrator Portal\n2. Teacher Portal\n3. Student Portal\n4. Exit\n";
+        cout << "Enter choice: "; cin >> mainChoice;
+
+        if (mainChoice == 1) {
+            string user, pass;
+            cout << "Enter Admin Username: "; cin >> user;
+            cout << "Enter Admin Password: "; cin >> pass;
+
+            if (admin.login(user, pass)) {
+                int adminChoice;
+                do {
+                    cout << "\n-- Administrator Portal --\n";
+                    cout << "1. Add Teacher\n2. Add Student\n3. View Teachers\n4. View Students\n5. Assign Student to Teacher\n6. Back to Main Menu\n";
+                    cout << "Enter choice: "; cin >> adminChoice;
+
+                    switch (adminChoice) {
+                    case 1: admin.addTeacher(); break;
+                    case 2: admin.addStudent(); break;
+                    case 3: admin.viewTeachers(); break;
+                    case 4: admin.viewStudents(); break;
+                    case 5: admin.assignStudentToTeacher(); break;
+                    case 6: cout << "Returning to Main Menu...\n"; break;
+                    default: cout << "Invalid choice.\n";
+                    }
+                } while (adminChoice != 6);
+            }
+            else {
+                cout << "Invalid Admin Credentials.\n";
+            }
+        }
+
+        else if (mainChoice == 2) {
+            int index = authenticateUser(admin.getTeachers());
+            if (index != -1) {
+                int teacherChoice;
+                auto& teacher = admin.getTeachers()[index];
+                do {
+                    cout << "\n-- Teacher Portal --\n";
+                    cout << "1. View Assigned Students\n2. Back to Main Menu\n";
+                    cout << "Enter choice: "; cin >> teacherChoice;
+
+                    switch (teacherChoice) {
+                    case 1: teacher.viewAssignedStudents(admin.getStudents()); break;
+                    case 2: cout << "Returning to Main Menu...\n"; break;
+                    default: cout << "Invalid choice.\n";
+                    }
+                } while (teacherChoice != 2);
+            }
+            else {
+                cout << "Invalid Teacher Credentials.\n";
+            }
+        }
+
+        else if (mainChoice == 3) {
+            int index = authenticateUser(admin.getStudents());
+            if (index != -1) {
+                int studentChoice;
+                auto& student = admin.getStudents()[index];
+
+                do {
+                    cout << "\n-- Student Portal --\n";
+                    cout << "1. View Courses\n2. Select Course\n3. View Selected Courses\n4. View Teachers\n5. Give Feedback\n6. Back to Main Menu\n";
+                    cout << "Enter choice: "; cin >> studentChoice;
+
+                    switch (studentChoice) {
+                    case 1:
+                        for (const auto& course : courses) {
+                            course.displayCourseInfo();
+                        }
+                        break;
+
+                    case 2: {
+                        int cid;
+                        cout << "Enter Course ID: "; cin >> cid;
+                        bool found = false;
+                        for (const auto& course : courses) {
+                            if (course.courseID == cid) {
+                                student.selectCourse(course);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) cout << "Course not found.\n";
+                        break;
+                    }
+
+                    case 3:
+                        student.viewSelectedCourses();
+                        break;
+
+                    case 4:
+                        admin.viewTeachers();
+                        break;
+
+                    case 5: {
+                        string tName, fText;
+                        cout << "Enter Teacher Name: "; cin.ignore(); getline(cin, tName);
+                        cout << "Enter Feedback: "; getline(cin, fText);
+                        feedbacks.emplace_back(student.getName(), tName, fText);
+                        cout << "Feedback submitted.\n";
+                        break;
+                    }
+
+                    case 6: cout << "Returning to Main Menu...\n"; break;
+                    default: cout << "Invalid choice.\n";
+                    }
+                } while (studentChoice != 6);
+            }
+            else {
+                cout << "Invalid Student Credentials.\n";
+            }
+        }
+
+        else if (mainChoice == 4) {
+            cout << "Exiting system...\n";
+        }
+
+        else {
+            cout << "Invalid choice.\n";
+        }
+
+    } while (mainChoice != 4);
+
+    return 0;
+}
